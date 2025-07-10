@@ -117,7 +117,7 @@ let
             export PGRST_DB_URI="postgres:///$PGDATABASE?host=$PGREPLICAHOST,$PGHOST"
           fi
 
-          # shellcheck disable=SC2317
+          # shellcheck disable=SC2329
           stop () {
             log "Stopping the database cluster..."
             pg_ctl stop --mode=immediate >> "$setuplog"
@@ -211,6 +211,7 @@ let
         ${slocat}/bin/slocat -delay "$delay" -src "$PGHOST/.s.PGSQL.5432" -dst "$REALPGHOST/.s.PGSQL.5432" &
         SLOCAT_PID=$!
         # shellcheck disable=SC2317
+        # shellcheck disable=SC2329
         stop_slocat() {
           kill "$SLOCAT_PID" || true
           wait "$SLOCAT_PID" || true
@@ -248,6 +249,7 @@ let
         ${slocat}/bin/slocat -delay "$delay" -src "$PGRST_SERVER_UNIX_SOCKET" -dst "$REAL_PGRST_SERVER_UNIX_SOCKET" &
         SLOCAT_PID=$!
         # shellcheck disable=SC2317
+        # shellcheck disable=SC2329
         stop_slocat() {
           kill "$SLOCAT_PID" || true
           wait "$SLOCAT_PID" || true
@@ -393,7 +395,7 @@ let
 
         $PGRST_CMD ${legacyConfig} > "$tmpdir"/run.log 2>&1 &
         pid=$!
-        # shellcheck disable=SC2317
+        # shellcheck disable=SC2329
         cleanup() {
           # Send INT to all postgrest processes.
           # Workaround to trigger dumping postgrest.prof for postgrest-profiled-run
