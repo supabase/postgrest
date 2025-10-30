@@ -13,6 +13,7 @@ module PostgREST.Query.Statements
 import qualified Hasql.DynamicStatements.Snippet as SQL
 
 import PostgREST.ApiRequest.Preferences
+import PostgREST.Config.PgVersion       (PgVersion (..))
 import PostgREST.MediaType              (MTVndPlanFormat (..),
                                          MediaType (..))
 import PostgREST.Plan.CallPlan
@@ -89,7 +90,7 @@ mainRead rPlan countQuery pCount maxRows mt handler = mtSnippet mt snippet
       countQuery
 
 mainCall :: Routine -> CallPlan -> ReadPlanTree -> Maybe PreferCount ->
-            MediaType -> MediaHandler -> SQL.Snippet
+            MediaType -> MediaHandler -> PgVersion -> SQL.Snippet
 mainCall rout cPlan rPlan pCount mt handler = mtSnippet mt snippet
   where
     snippet =
