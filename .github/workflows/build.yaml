@@ -164,17 +164,17 @@ jobs:
           if-no-files-found: error
 
 
-  freebsd:
-    name: Stack - FreeBSD from CirrusCI
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      - uses: ./.github/actions/artifact-from-cirrus
-        with:
-          token: ${{ github.token }}
-          task: Build FreeBSD (Stack)
-          download: bin
-          upload: postgrest-freebsd-x86-64
+  #  freebsd:
+  #    name: Stack - FreeBSD from CirrusCI
+  #    runs-on: ubuntu-24.04
+  #    steps:
+  #      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+  #      - uses: ./.github/actions/artifact-from-cirrus
+  #        with:
+  #          token: ${{ github.token }}
+  #          task: Build FreeBSD (Stack)
+  #          download: bin
+  #          upload: postgrest-freebsd-x86-64
 
 
   cabal:
