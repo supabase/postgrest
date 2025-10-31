@@ -84,8 +84,8 @@ jobs:
           tar cJvf "release-bundle/postgrest-${GITHUB_REF_NAME}-macos-x86-64.tar.xz" \
             -C artifacts/postgrest-macos-x86-64 postgrest
 
-          tar cJvf "release-bundle/postgrest-${GITHUB_REF_NAME}-freebsd-x86-64.tar.xz" \
-            -C artifacts/postgrest-freebsd-x86-64 postgrest
+          # tar cJvf "release-bundle/postgrest-${GITHUB_REF_NAME}-freebsd-x86-64.tar.xz" \
+          #   -C artifacts/postgrest-freebsd-x86-64 postgrest
 
           tar cJvf "release-bundle/postgrest-${GITHUB_REF_NAME}-ubuntu-aarch64.tar.xz" \
             -C artifacts/postgrest-ubuntu-aarch64 postgrest
@@ -202,4 +202,3 @@ jobs:
           repository: ${{ vars.DOCKER_REPO }}/postgrest
           short-description: ${{ github.event.repository.description }}
           readme-filepath: ./docker-hub-readme.md
-
