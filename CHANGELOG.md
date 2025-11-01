@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. From version `14.0` onwards PostgREST follows a `MAJOR.PATCH` two-part versioning. Only even-numbered MAJOR versions will be released, reserving odd-numbered MAJOR versions for development.
 
-## Unreleased
+## [15.1] - 2025-11-01
 
 ## Fixed
 
