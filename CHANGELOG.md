@@ -81,10 +81,11 @@ All notable changes to this project will be documented in this file. From versio
 
 ## [14.1] - 2025-11-05
 ### Added
+## [15.3] - 2025-11-01
 
 - Add support for PostgreSQL 12 by @laurenceisla
 
-## [15.1] - 2025-11-01
+## [14.1] - 2025-11-05
 
 ## Fixed
 
