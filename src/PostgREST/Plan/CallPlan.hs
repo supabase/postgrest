@@ -19,13 +19,14 @@ import           PostgREST.SchemaCache.Routine     (Routine (..),
 import Protolude
 
 data CallPlan = FunctionCall
-  { funCQi           :: QualifiedIdentifier
-  , funCParams       :: CallParams
-  , funCArgs         :: CallArgs
-  , funCScalar       :: Bool
-  , funCSetOfScalar  :: Bool
-  , funCFilterFields :: Set FieldName
-  , funCReturning    :: Set FieldName
+  { funCQi                :: QualifiedIdentifier
+  , funCParams            :: CallParams
+  , funCArgs              :: CallArgs
+  , funCScalar            :: Bool
+  , funCSetOfScalar       :: Bool
+  , funCRetCompositeAlias :: Bool
+  , funCFilterFields      :: Set FieldName
+  , funCReturning         :: Set FieldName
   }
 
 data CallParams

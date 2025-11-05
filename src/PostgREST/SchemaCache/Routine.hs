@@ -14,6 +14,7 @@ module PostgREST.SchemaCache.Routine
   , funcReturnsSingleComposite
   , funcReturnsVoid
   , funcTableName
+  , funcReturnsCompositeAlias
   , funcReturnsSingle
   , MediaHandlerMap
   , ResolvedHandler
@@ -125,6 +126,12 @@ funcReturnsSetOfScalar :: Routine -> Bool
 funcReturnsSetOfScalar proc = case proc of
   Function{pdReturnType = SetOf (Scalar{})} -> True
   _                                         -> False
+
+funcReturnsCompositeAlias :: Routine -> Bool
+funcReturnsCompositeAlias proc = case proc of
+  Function{pdReturnType = Single (Composite _ True)} -> True
+  Function{pdReturnType = SetOf (Composite _ True)}  -> True
+  _                                                  -> False
 
 funcReturnsSingleComposite :: Routine -> Bool
 funcReturnsSingleComposite proc = case proc of

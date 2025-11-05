@@ -13,6 +13,7 @@ module PostgREST.Query.Statements
 import qualified Hasql.DynamicStatements.Snippet as SQL
 
 import PostgREST.ApiRequest.Preferences
+import PostgREST.Config.PgVersion       (PgVersion (..))
 import PostgREST.MediaType              (MTVndPlanFormat (..),
                                          MediaType (..))
 import PostgREST.Plan.CallPlan
@@ -89,8 +90,8 @@ mainRead rPlan countQuery pCount maxRows mt handler = mtSnippet mt snippet
       countQuery
 
 mainCall :: Routine -> CallPlan -> ReadPlanTree -> Maybe PreferCount ->
-            MediaType -> MediaHandler -> SQL.Snippet
-mainCall rout cPlan rPlan pCount mt handler = mtSnippet mt snippet
+            MediaType -> MediaHandler -> PgVersion -> SQL.Snippet
+mainCall rout cPlan rPlan pCount mt handler pgVer = mtSnippet mt snippet
   where
     snippet =
       "WITH " <> sourceCTE <> " AS (" <> callProcQuery <> ") " <>
@@ -108,7 +109,7 @@ mainCall rout cPlan rPlan pCount mt handler = mtSnippet mt snippet
 
     (countCTEF, countResultF) = countF countQuery $ shouldCount pCount
     selectQuery = readPlanToQuery rPlan
-    callProcQuery = callPlanToQuery cPlan
+    callProcQuery = callPlanToQuery cPlan pgVer
     countQuery = readPlanToCountQuery rPlan
 
 -- This occurs after the main query runs, that's why it's prefixed with "post"
