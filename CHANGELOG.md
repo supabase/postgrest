@@ -80,6 +80,11 @@ All notable changes to this project will be documented in this file. From versio
 - Fix inaccurate "Schema cache queried" logs by @steve-chavez in #4522
 
 ## [14.1] - 2025-11-05
+### Added
+
+- Add support for PostgreSQL 12 by @laurenceisla
+
+## [15.1] - 2025-11-01
 
 ## Fixed
 

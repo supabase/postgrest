@@ -23,6 +23,7 @@ import PostgREST.ApiRequest.Preferences  (Preferences (..),
                                           shouldExplainCount)
 import PostgREST.Auth.Types              (AuthResult (..))
 import PostgREST.Config                  (AppConfig (..))
+import PostgREST.Config.PgVersion        (PgVersion (..))
 import PostgREST.Plan                    (ActionPlan (..),
                                           CrudPlan (..),
                                           DbActionPlan (..),
@@ -41,9 +42,9 @@ data MainQuery = MainQuery
   , mqExplain :: Maybe SQL.Snippet     -- ^ the explain query that gets generated for the "Prefer: count=estimated" case
   }
 
-mainQuery :: ActionPlan -> AppConfig -> ApiRequest -> AuthResult -> Maybe QualifiedIdentifier -> MainQuery
-mainQuery (NoDb _) _ _ _ _ = MainQuery mempty Nothing mempty (mempty, mempty, mempty) mempty
-mainQuery (Db plan) conf@AppConfig{..} apiReq@ApiRequest{iPreferences=Preferences{..}} authRes preReq =
+mainQuery :: ActionPlan -> AppConfig -> ApiRequest -> AuthResult -> Maybe QualifiedIdentifier -> PgVersion -> MainQuery
+mainQuery (NoDb _) _ _ _ _ _ = MainQuery mempty Nothing mempty (mempty, mempty, mempty) mempty
+mainQuery (Db plan) conf@AppConfig{..} apiReq@ApiRequest{iPreferences=Preferences{..}} authRes preReq pgVer =
   let genQ = MainQuery (PreQuery.txVarQuery plan conf authRes apiReq) (PreQuery.preReqQuery <$> preReq) in
   case plan of
     DbCrud _ WrappedReadPlan{..} ->
@@ -53,6 +54,6 @@ mainQuery (Db plan) conf@AppConfig{..} apiReq@ApiRequest{iPreferences=Preference
     DbCrud _ MutateReadPlan{..} ->
       genQ (Statements.mainWrite mrReadPlan mrMutatePlan pMedia mrHandler preferRepresentation preferResolution) (mempty, mempty, mempty) mempty
     DbCrud _ CallReadPlan{..} ->
-      genQ (Statements.mainCall crProc crCallPlan crReadPlan preferCount pMedia crHandler) (mempty, mempty, mempty) mempty
+      genQ (Statements.mainCall crProc crCallPlan crReadPlan preferCount pMedia crHandler pgVer) (mempty, mempty, mempty) mempty
     MayUseDb InspectPlan{ipSchema=tSchema} ->
       genQ mempty (SqlFragment.accessibleTables tSchema, SqlFragment.accessibleFuncs tSchema, SqlFragment.schemaDescription tSchema) mempty
