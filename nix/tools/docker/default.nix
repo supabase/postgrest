@@ -6,7 +6,7 @@
 let
   image =
     dockerTools.buildImage {
-      name = "postgrest";
+      name = "postgrest-middleware";
       tag = "latest";
       copyToRoot = postgrest;
 
