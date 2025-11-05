@@ -134,7 +134,7 @@ jobs:
     needs:
       - prepare
     if: |
-      vars.DOCKER_REPO && vars.DOCKER_USER
+      vars.DOCKER_REPO
     env:
       DOCKER_REPO: ${{ vars.DOCKER_REPO }}
     steps:
@@ -150,15 +150,15 @@ jobs:
       - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
       - uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
         with:
-          username: ${{ vars.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASS }}
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PAT }}
       - name: Build aarch64 Docker image
         run: |
           # This only pushes the image via digest, not a tag. This will not appear
           # in the image list on Docker Hub, yet. It will be later added to the main
           # tag's manifest.
           docker buildx build \
-            -t "$DOCKER_REPO/postgrest" \
+            -t "$DOCKER_REPO/postgrest-middleware" \
             --platform linux/arm64 \
             --output push-by-digest=true,type=image,push=true \
             --metadata-file metadata.json \
@@ -168,20 +168,20 @@ jobs:
         run: |
           docker load -i postgrest-docker.tar.gz
 
-          docker tag postgrest:latest "$DOCKER_REPO/postgrest:${GITHUB_REF_NAME}"
-          docker push "$DOCKER_REPO/postgrest:${GITHUB_REF_NAME}"
+          docker tag postgrest-middleware:latest "$DOCKER_REPO/postgrest-middleware:${GITHUB_REF_NAME}"
+          docker push "$DOCKER_REPO/postgrest-middleware:${GITHUB_REF_NAME}"
           docker buildx imagetools create --append \
-            -t "$DOCKER_REPO/postgrest:${GITHUB_REF_NAME}" \
-            "$DOCKER_REPO/postgrest@$SHA256_ARM"
+            -t "$DOCKER_REPO/postgrest-middleware:${GITHUB_REF_NAME}" \
+            "$DOCKER_REPO/postgrest-middleware@$SHA256_ARM"
 
           # Only tag 'latest' for full releases
           if [ "${GITHUB_REF_NAME}" != "devel" ]; then
             echo "Pushing to 'latest' tag for full release of ${GITHUB_REF_NAME} ..."
-            docker tag postgrest:latest "$DOCKER_REPO"/postgrest:latest
-            docker push "$DOCKER_REPO"/postgrest:latest
+            docker tag postgrest-middleware:latest "$DOCKER_REPO"/postgrest-middleware:latest
+            docker push "$DOCKER_REPO"/postgrest-middleware:latest
             docker buildx imagetools create --append \
-              -t "$DOCKER_REPO/postgrest:latest" \
-              "$DOCKER_REPO/postgrest@$SHA256_ARM"
+              -t "$DOCKER_REPO/postgrest-middleware:latest" \
+              "$DOCKER_REPO/postgrest-middleware@$SHA256_ARM"
           else
             echo "Skipping push to 'latest' tag for pre-release..."
           fi
