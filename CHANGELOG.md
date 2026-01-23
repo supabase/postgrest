@@ -4,6 +4,33 @@ All notable changes to this project will be documented in this file. From versio
 
 ## Unreleased
 
+### Added
+
+- Log error when `db-schemas` config contains schema `pg_catalog` or `information_schema` by @taimoorzaeem in #4359
+- Add a `HINT` when the LISTEN channel stops working due to a PostgreSQL bug by @laurenceisla in #4581
+- Add `--query-to-sql` CLI flag to translate a PostgREST URL query to SQL without running the server
+
+## [14.3] - 2026-01-03
+
+### Fixed
+
+- Fix performance and high memory usage of relation hint calculation by @mkleczek in #4462, #4463
+
+## [14.2] - 2025-12-18
+
+### Fixed
+
+- Fix `hasSingleUnnamedParam` incorrectly matching functions with named parameters by @joelonsql in #4553
+  + Functions with a single named parameter (e.g., `foo(data json)`) no longer incorrectly match the single-param fallback, returning a clean `PGRST202` error instead of a confusing PostgreSQL `42883` error.
+- Fix misleading logs on unsupported PostgreSQL versions by @taimoorzaeem in #4519
+- Fix regression where the `PGRST103` error response was truncated by @laurenceisla in #4455
+  + Happened when an `offset` was greater than the rows requested and `Prefer: count=exact` was sent.
+- Fix not returning `Content-Length` on empty HTTP `201` responses by @laurenceisla in #4518
+- Fix inaccurate Server-Timing header durations by @steve-chavez in #4522
+- Fix inaccurate "Schema cache queried" logs by @steve-chavez in #4522
+
+## [14.1] - 2025-11-05
+
 ## Fixed
 
 - Fix `db-pre-config` function failing when function names are pg reserved words by @taimoorzaeem #4380
