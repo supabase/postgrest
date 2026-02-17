@@ -941,11 +941,11 @@ def test_role_settings(defaultenv):
     with run(env=env) as postgrest:
         # statement_timeout for postgrest_test_anonymous
         response = postgrest.session.get("/rpc/get_guc_value?name=statement_timeout")
-        assert response.text == '"2s"'
+        assert response.text == '"5s"'
 
         # reload statement_timeout with NOTIFY
         response = postgrest.session.post(
-            "/rpc/change_role_statement_timeout", data={"timeout": "5s"}
+            "/rpc/change_role_statement_timeout", data={"timeout": "8s"}
         )
         assert response.text == ""
         assert response.status_code == 204
@@ -956,7 +956,7 @@ def test_role_settings(defaultenv):
         sleep_until_postgrest_config_reload()
 
         response = postgrest.session.get("/rpc/get_guc_value?name=statement_timeout")
-        assert response.text == '"5s"'
+        assert response.text == '"8s"'
 
         # statement_timeout for postgrest_test_author
         headers = jwtauthheader({"role": "postgrest_test_author"}, SECRET)
