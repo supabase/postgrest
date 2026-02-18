@@ -967,7 +967,7 @@ def test_role_settings(defaultenv):
 
         # reset statement timeout to original value
         response = postgrest.session.post(
-            "/rpc/change_role_statement_timeout", data={"timeout": "2s"}
+            "/rpc/change_role_statement_timeout", data={"timeout": "5s"}
         )
         assert response.status_code == 204
 
@@ -1454,7 +1454,7 @@ def test_first_hoisted_setting_is_applied(defaultenv):
             "/rpc/rpc_with_one_hoisted?select=get_work_mem,get_statement_timeout"
         )
 
-        assert response.text == '{"get_work_mem":"3000kB","get_statement_timeout":"2s"}'
+        assert response.text == '{"get_work_mem":"3000kB","get_statement_timeout":"5s"}'
 
 
 def test_second_hoisted_setting_is_applied(defaultenv):
