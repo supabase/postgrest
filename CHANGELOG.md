@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. From versio
 
 ## Unreleased
 
+### Fixed
+
+- Shutdown should wait for in flight requests by @mkleczek in #4702
+
 ### Changed
 
 - Drop support for PostgreSQL 12 by @laurenceisla
