@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. From versio
 ### Changed
 
 - Drop support for PostgreSQL 12 by @laurenceisla
+- Drop support for PostgreSQL EOL version 13 by @wolfgangwalther in #4193
 
 ## [14.10] - 2026-04-16
 
