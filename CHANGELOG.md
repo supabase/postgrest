@@ -83,12 +83,9 @@ All notable changes to this project will be documented in this file. From versio
 - Fix inaccurate Server-Timing header durations by @steve-chavez in #4522
 - Fix inaccurate "Schema cache queried" logs by @steve-chavez in #4522
 
-## [14.1] - 2025-11-05
-### Added
 ## [15.3] - 2025-11-01
 
 - Add support for PostgreSQL 12 by @laurenceisla
-## Unreleased
 
 ## [14.1] - 2025-11-05
 
