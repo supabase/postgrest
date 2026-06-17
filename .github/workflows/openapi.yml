@@ -52,8 +52,30 @@ jobs:
       - name: Verify OpenAPI snapshot is in sync with fixture schema
         run: |
           chmod +x test/openapi-drift-check.sh
-          postgrest-with-pg-17 --fixtures test/spec/fixtures/load.sql \
-            postgrest-with-pgrst test/openapi-drift-check.sh --check
+          rm -f test/spec/fixtures/openapi-snapshot.generated.json
+          attempt=1
+          max=3
+          while :; do
+            echo "::group::drift check attempt ${attempt}/${max}"
+            set +e
+            postgrest-with-pg-17 --fixtures test/spec/fixtures/load.sql \
+              postgrest-with-pgrst test/openapi-drift-check.sh --check
+            rc=$?
+            set -e
+            echo "::endgroup::"
+            [ "$rc" -eq 0 ] && exit 0
+            # The script writes the generated spec as soon as the server is
+            # reachable. If that file exists, the server started fine and a
+            # non-zero rc means a real drift / missing committed snapshot — do
+            # not retry. If it's absent, postgrest-with-pgrst timed out waiting
+            # for startup (flaky); retry.
+            if [ -f test/spec/fixtures/openapi-snapshot.generated.json ]; then
+              exit "$rc"
+            fi
+            attempt=$((attempt + 1))
+            [ "$attempt" -gt "$max" ] && exit "$rc"
+            echo "Server failed to start in time; retrying..."
+          done
 
       - name: Upload freshly generated spec
         if: always()
