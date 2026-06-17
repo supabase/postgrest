@@ -27,3 +27,4 @@ loadtest
 gen_targets.http
 gen_jwk.json
 gen_private.json
+test/spec/fixtures/openapi-snapshot.generated.json
