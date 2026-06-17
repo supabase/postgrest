@@ -59,7 +59,7 @@ jobs:
             echo "::group::drift check attempt ${attempt}/${max}"
             set +e
             postgrest-with-pg-17 --fixtures test/spec/fixtures/load.sql \
-              postgrest-with-pgrst test/openapi-drift-check.sh --check
+              postgrest-with-pgrst --timeout 60 test/openapi-drift-check.sh --check
             rc=$?
             set -e
             echo "::endgroup::"
