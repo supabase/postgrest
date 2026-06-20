@@ -49,6 +49,19 @@ Similarly, you can override the API title by commenting the schema.
 
 If you need to include the ``security`` and ``securityDefinitions`` options, set the :ref:`openapi-security-active` configuration to ``true``.
 
+Typegen metadata extension
+--------------------------
+
+PostgREST's OpenAPI is a name-based description of the API surface, which is lossy for client type generation (it cannot distinguish tables from views, identity columns, function return types, composite types, etc.). To support faithful type generation directly from the OpenAPI document, set ``openapi-metadata`` to ``true``. PostgREST then adds a top-level ``x-postgrest-typegen-metadata`` `vendor extension <https://spec.openapis.org/oas/v2.0#specification-extensions>`_ to the output, carrying catalog-grade metadata not otherwise expressible in OpenAPI:
+
+- object kind (``table`` / ``view`` / ``materialized_view`` / ``foreign_table``) and view updatability
+- per-column ``is_identity`` / ``identity_generation`` / ``is_generated`` and pg_catalog type names
+- the full relationship graph with constraint names, cardinality (one-to-one detection) and view-expanded relationships
+- function argument and return types (including set-returning detection and the returned relation), plus computed fields and computed relationships
+- standalone composite types and enum types
+
+The extension is ``false`` by default, leaving the standard OpenAPI output unchanged. Standard OpenAPI consumers ignore unknown ``x-`` keys. This extension is consumed by `@supabase/postgrest-typegen <https://github.com/supabase/pg-toolbelt>`_'s ``openApiToGeneratorMetadata`` producer.
+
 You can use a tool like `Swagger UI <https://swagger.io/tools/swagger-ui/>`_ to create beautiful documentation from the description and to host an interactive web-based dashboard. The dashboard allows developers to make requests against a live PostgREST server, and provides guidance with request headers and example request bodies.
 
 .. important::

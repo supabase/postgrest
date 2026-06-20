@@ -7,6 +7,7 @@
       pdHasVariadic: false
       pdName: rpc_with_two_hoisted
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -15,6 +16,7 @@
           - false
           tag: Composite
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -30,6 +32,7 @@
         ppType: text
         ppTypeMaxLength: text
         ppVar: false
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -37,6 +40,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: SetOf
+      pdRows: 1000
       pdSchema: public
       pdVolatility: Volatile
 
@@ -47,6 +51,7 @@
       pdHasVariadic: false
       pdName: default_isolation_level
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -54,6 +59,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -69,6 +75,7 @@
         ppType: text
         ppTypeMaxLength: text
         ppVar: false
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -76,6 +83,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -96,6 +104,7 @@
         ppType: integer
         ppTypeMaxLength: integer
         ppVar: false
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -103,6 +112,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -113,6 +123,7 @@
       pdHasVariadic: false
       pdName: notify_pgrst
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -120,6 +131,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -130,6 +142,7 @@
       pdHasVariadic: false
       pdName: migrate_function
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -137,6 +150,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -152,6 +166,7 @@
         ppType: text
         ppTypeMaxLength: text
         ppVar: false
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -159,6 +174,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -169,6 +185,7 @@
       pdHasVariadic: false
       pdName: reset_max_rows_config
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -176,6 +193,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -186,6 +204,7 @@
       pdHasVariadic: false
       pdName: reset_invalid_role_claim_key
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -193,6 +212,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -203,6 +223,7 @@
       pdHasVariadic: false
       pdName: custom_vary_hdr
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -210,6 +231,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -220,6 +242,7 @@
       pdHasVariadic: false
       pdName: get_postgres_version
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -227,6 +250,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -237,6 +261,7 @@
       pdHasVariadic: false
       pdName: do_nothing
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -244,6 +269,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -259,6 +285,7 @@
         ppType: text
         ppTypeMaxLength: text
         ppVar: false
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -266,6 +293,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -278,6 +306,7 @@
       pdHasVariadic: false
       pdName: one_sec_timeout
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -285,6 +314,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -295,6 +325,7 @@
       pdHasVariadic: false
       pdName: reload_pgrst_config
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -302,6 +333,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -314,6 +346,7 @@
       pdHasVariadic: false
       pdName: rpc_with_one_hoisted
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -322,6 +355,7 @@
           - false
           tag: Composite
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -332,6 +366,7 @@
       pdHasVariadic: false
       pdName: hello
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -339,6 +374,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -349,6 +385,7 @@
       pdHasVariadic: false
       pdName: change_db_schemas_config
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -356,6 +393,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -371,6 +409,7 @@
         ppType: double precision
         ppTypeMaxLength: double precision
         ppVar: false
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -378,6 +417,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -390,6 +430,7 @@
       pdHasVariadic: false
       pdName: serializable_isolation_level
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -397,6 +438,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -407,6 +449,7 @@
       pdHasVariadic: false
       pdName: drop_change_cats
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -414,6 +457,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -434,6 +478,7 @@
         ppType: boolean
         ppTypeMaxLength: boolean
         ppVar: false
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -441,6 +486,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -451,6 +497,7 @@
       pdHasVariadic: false
       pdName: invalid_role_claim_key_reload
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -458,6 +505,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -468,6 +516,7 @@
       pdHasVariadic: false
       pdName: reset_db_schemas_config
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -475,6 +524,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -485,6 +535,7 @@
       pdHasVariadic: false
       pdName: root
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -492,6 +543,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -502,6 +554,7 @@
       pdHasVariadic: false
       pdName: 'true'
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -509,6 +562,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -519,6 +573,7 @@
       pdHasVariadic: false
       pdName: create_function
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -526,6 +581,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -536,6 +592,7 @@
       pdHasVariadic: false
       pdName: get_pgrst_version
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -543,6 +600,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -553,6 +611,7 @@
       pdHasVariadic: false
       pdName: uses_prepared_statements
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -560,6 +619,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -572,6 +632,7 @@
       pdHasVariadic: false
       pdName: repeatable_read_isolation_level
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -579,6 +640,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -589,6 +651,7 @@
       pdHasVariadic: false
       pdName: notify_do_nothing
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -596,6 +659,7 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -606,6 +670,7 @@
       pdHasVariadic: false
       pdName: rpc_work_mem
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -614,6 +679,7 @@
           - false
           tag: Composite
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile
 
@@ -626,6 +692,7 @@
       pdHasVariadic: false
       pdName: four_sec_timeout
       pdParams: []
+      pdReturnColumns: []
       pdReturnType:
         contents:
           contents:
@@ -633,5 +700,6 @@
             qiSchema: pg_catalog
           tag: Scalar
         tag: Single
+      pdRows: 0
       pdSchema: public
       pdVolatility: Volatile

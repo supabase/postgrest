@@ -681,6 +681,18 @@ baseFuncSqlQuery = SQL.sql $ encodeUtf8 [trimming|
            WITH ORDINALITY AS _ (name, type, mode, idx)
     WHERE type IS NOT NULL -- only input arguments
     GROUP BY oid
+  ),
+  return_columns AS (
+    -- OUT / TABLE return columns (mode 't'), name + pg_catalog short type.
+    SELECT
+      pp.oid,
+      array_agg((COALESCE(u.name, ''), rt.typname::text) ORDER BY u.idx)
+        FILTER (WHERE u.mode = 't') AS cols
+    FROM pg_proc pp
+    CROSS JOIN LATERAL unnest(pp.proallargtypes, pp.proargmodes, pp.proargnames)
+      WITH ORDINALITY AS u (typ_oid, mode, name, idx)
+    JOIN pg_type rt ON rt.oid = u.typ_oid
+    GROUP BY pp.oid
   )
   SELECT
     pn.nspname AS proc_schema,
@@ -698,9 +710,12 @@ baseFuncSqlQuery = SQL.sql $ encodeUtf8 [trimming|
     p.provolatile,
     p.provariadic > 0 as hasvariadic,
     'ignored' AS transaction_isolation_level,
-    '{}'::text[] as kvs
+    '{}'::text[] as kvs,
+    p.prorows::float8 as rows,
+    coalesce(rc.cols, '{}') as return_columns
   FROM pg_proc p
   LEFT JOIN arguments a ON a.oid = p.oid
+  LEFT JOIN return_columns rc ON rc.oid = p.oid
   JOIN pg_namespace pn ON pn.oid = p.pronamespace
   JOIN base_types bt ON bt.oid = p.prorettype
   JOIN pg_type t ON t.oid = bt.base_type

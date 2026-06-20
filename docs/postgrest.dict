@@ -204,3 +204,7 @@ wfts
 www
 debouncing
 deduplicates
+cardinality
+lossy
+Typegen
+updatability

@@ -115,6 +115,7 @@ data AppConfig = AppConfig
   , configOpenApiMode              :: OpenAPIMode
   , configOpenApiSecurityActive    :: Bool
   , configOpenApiServerProxyUri    :: Maybe Text
+  , configOpenApiMetadata          :: Bool
   , configServerCorsAllowedOrigins :: Maybe [Text]
   , configServerHost               :: Text
   , configServerPort               :: Int
@@ -198,6 +199,7 @@ toText conf =
       ,("openapi-mode",              q . dumpOpenApiMode . configOpenApiMode)
       ,("openapi-security-active",       T.toLower . show . configOpenApiSecurityActive)
       ,("openapi-server-proxy-uri",  q . fromMaybe mempty . configOpenApiServerProxyUri)
+      ,("openapi-metadata",              T.toLower . show . configOpenApiMetadata)
       ,("server-cors-allowed-origins",      q . maybe "" (T.intercalate ",") . configServerCorsAllowedOrigins)
       ,("server-host",               q . configServerHost)
       ,("server-port",                   show . configServerPort)
@@ -313,6 +315,7 @@ parser optPath env dbSettings roleSettings roleIsolationLvl =
     <*> parseOpenAPIMode "openapi-mode"
     <*> (fromMaybe False <$> optBool "openapi-security-active")
     <*> parseOpenAPIServerProxyURI "openapi-server-proxy-uri"
+    <*> (fromMaybe False <$> optBool "openapi-metadata")
     <*> parseCORSAllowedOrigins "server-cors-allowed-origins"
     <*> (defaultServerHost <$> optString "server-host")
     <*> parseServerPort "server-port"

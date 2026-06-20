@@ -5,6 +5,7 @@
     tableDescription: null
     tableInsertable: true
     tableIsView: false
+    tableKind: table
     tableName: authors_only
     tablePKCols: []
     tableSchema: public
@@ -17,6 +18,9 @@
         colDefault: null
         colDescription: null
         colEnum: []
+        colFormat: uuid
+        colIdentityGeneration: null
+        colIsGenerated: false
         colMaxLen: null
         colName: id
         colNominalType: uuid
@@ -26,6 +30,9 @@
         colDefault: null
         colDescription: null
         colEnum: []
+        colFormat: text
+        colIdentityGeneration: null
+        colIsGenerated: false
         colMaxLen: null
         colName: name
         colNominalType: text
@@ -35,6 +42,7 @@
     tableDescription: null
     tableInsertable: true
     tableIsView: false
+    tableKind: table
     tableName: cats
     tablePKCols:
     - id
@@ -48,6 +56,9 @@
         colDefault: null
         colDescription: null
         colEnum: []
+        colFormat: int4
+        colIdentityGeneration: null
+        colIsGenerated: false
         colMaxLen: null
         colName: id
         colNominalType: integer
@@ -57,6 +68,9 @@
         colDefault: null
         colDescription: null
         colEnum: []
+        colFormat: text
+        colIdentityGeneration: null
+        colIsGenerated: false
         colMaxLen: null
         colName: isolation_level
         colNominalType: text
@@ -66,6 +80,7 @@
     tableDescription: null
     tableInsertable: true
     tableIsView: true
+    tableKind: view
     tableName: items_w_isolation_level
     tablePKCols: []
     tableSchema: public
@@ -78,6 +93,9 @@
         colDefault: null
         colDescription: null
         colEnum: []
+        colFormat: int4
+        colIdentityGeneration: null
+        colIsGenerated: false
         colMaxLen: null
         colName: id
         colNominalType: integer
@@ -87,6 +105,9 @@
         colDefault: null
         colDescription: null
         colEnum: []
+        colFormat: text
+        colIdentityGeneration: null
+        colIsGenerated: false
         colMaxLen: null
         colName: name
         colNominalType: text
@@ -96,6 +117,7 @@
     tableDescription: null
     tableInsertable: true
     tableIsView: false
+    tableKind: table
     tableName: directors
     tablePKCols:
     - id
@@ -109,6 +131,7 @@
     tableDescription: null
     tableInsertable: true
     tableIsView: false
+    tableKind: table
     tableName: projects
     tablePKCols: []
     tableSchema: public
@@ -121,6 +144,7 @@
     tableDescription: null
     tableInsertable: false
     tableIsView: true
+    tableKind: view
     tableName: infinite_recursion
     tablePKCols: []
     tableSchema: public
@@ -133,6 +157,9 @@
         colDefault: null
         colDescription: null
         colEnum: []
+        colFormat: int4
+        colIdentityGeneration: null
+        colIsGenerated: false
         colMaxLen: null
         colName: director_id
         colNominalType: integer
@@ -142,6 +169,9 @@
         colDefault: null
         colDescription: null
         colEnum: []
+        colFormat: int4
+        colIdentityGeneration: null
+        colIsGenerated: false
         colMaxLen: null
         colName: id
         colNominalType: integer
@@ -151,6 +181,9 @@
         colDefault: null
         colDescription: null
         colEnum: []
+        colFormat: text
+        colIdentityGeneration: null
+        colIsGenerated: false
         colMaxLen: null
         colName: title
         colNominalType: text
@@ -160,6 +193,7 @@
     tableDescription: null
     tableInsertable: true
     tableIsView: false
+    tableKind: table
     tableName: films
     tablePKCols:
     - id
@@ -173,6 +207,9 @@
         colDefault: null
         colDescription: null
         colEnum: []
+        colFormat: int4
+        colIdentityGeneration: null
+        colIsGenerated: false
         colMaxLen: null
         colName: id
         colNominalType: integer
@@ -182,6 +219,7 @@
     tableDescription: null
     tableInsertable: true
     tableIsView: false
+    tableKind: table
     tableName: items
     tablePKCols: []
     tableSchema: public

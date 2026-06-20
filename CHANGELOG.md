@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. From versio
 - Add config `db-timezone-enabled` for optional querying of timezones by @taimoorzaeem in #4751
 - Log schema cache queries timings on `log-level=debug` by @steve-chavez in #4805
 - Add GHC runtime metrics to the metrics endpoint by @mkleczek in #4862
+- Add opt-in `openapi-metadata` config that emits an `x-postgrest-typegen-metadata` vendor extension in the OpenAPI output, carrying catalog-grade metadata (object kind, identity/generated columns, full relationships with cardinality, function return types, composite types, computed fields) for faithful client type generation
 
 ### Fixed
 

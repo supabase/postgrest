@@ -256,7 +256,13 @@ def test_invalid_openapi_mode(invalidopenapimodes, defaultenv):
 def test_schema_cache_snapshot(baseenv, key, snapshot_yaml):
     "Dump of schema cache should match snapshot."
 
-    schema_cache = yaml.load(cli(["--dump-schema"], env=baseenv), Loader=yaml.Loader)
+    # Dump with the opt-in typegen OpenAPI metadata feature ON so the snapshot
+    # exercises the enriched schema cache (object kind, identity/generated
+    # columns, function rows/return columns). With the feature OFF those fields
+    # are intentionally discarded to keep the resident cache at the baseline
+    # memory footprint, so they would not appear in the dump.
+    env = {**baseenv, "PGRST_OPENAPI_METADATA": "true"}
+    schema_cache = yaml.load(cli(["--dump-schema"], env=env), Loader=yaml.Loader)
     formatted = yaml.dump(
         schema_cache[key],
         encoding="utf8",

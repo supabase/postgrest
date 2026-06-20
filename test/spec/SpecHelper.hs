@@ -146,6 +146,7 @@ baseCfg = let secret = encodeUtf8 "reallyreallyreallyreallyverysafe" in
   , configOpenApiMode               = OAFollowPriv
   , configOpenApiSecurityActive     = False
   , configOpenApiServerProxyUri     = Nothing
+  , configOpenApiMetadata           = False
   , configServerCorsAllowedOrigins  = Nothing
   , configServerHost                = "localhost"
   , configServerPort                = 3000

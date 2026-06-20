@@ -20,6 +20,8 @@ These queries are executed once at startup or when PostgREST is reloaded.
 
 module PostgREST.SchemaCache
   ( SchemaCache(..)
+  , CompositeType(..)
+  , ComputedField(..)
   , TablesFuzzyIndex
   , querySchemaCache
   , showSummary
@@ -90,10 +92,38 @@ data SchemaCache = SchemaCache
   -- Haskell lazy evaluation ensures it's only built on first use and memoized afterwards
   , dbTablesFuzzyIndex :: TablesFuzzyIndex
   , dbQueryTimings     :: Maybe QueryTimings -- ^ cached time for the time each query took when debugging
+  -- The following two are only used by the opt-in typegen OpenAPI metadata
+  -- extension; they carry catalog facts not otherwise tracked by the cache.
+  , dbCompositeTypes   :: [CompositeType]
+  , dbComputedFields   :: [ComputedField]
   } deriving (Show)
 
+-- | A standalone composite type (typtype = 'c'), with its attributes. Only
+-- surfaced for the typegen OpenAPI metadata extension.
+data CompositeType = CompositeType
+  { ctSchema     :: Schema
+  , ctName       :: Text
+  , ctAttributes :: [(Text, Text)] -- ^ (attribute name, pg_catalog short type name)
+  } deriving (Show, Eq, Generic, JSON.ToJSON)
+
+-- | A computed field: a function taking a single table/view row and returning a
+-- scalar/array/composite (non-relation) value, selectable as a pseudo-column.
+-- Not tracked by the normal routine/relationship caches; surfaced only for the
+-- typegen OpenAPI metadata extension.
+data ComputedField = ComputedField
+  { cfSchema           :: Schema  -- ^ schema of both the function and its target relation
+  , cfTableName        :: Text    -- ^ the row-type argument's relation name (the owning table)
+  , cfName             :: Text    -- ^ field name (= function name)
+  , cfReturnType       :: Text    -- ^ pg_catalog short type name of the return
+  , cfIsSetOf          :: Bool
+  , cfVolatility       :: FuncVolatility
+  , cfRows             :: Maybe Double
+  , cfReturnSchema     :: Schema -- ^ schema of the return type
+  , cfReturnIsRelation :: Bool   -- ^ True if the return type is a table/view/composite row type
+  } deriving (Show, Eq, Generic, JSON.ToJSON)
+
 instance JSON.ToJSON SchemaCache where
-  toJSON (SchemaCache tabs rels routs reps hdlers tzs _ _) = JSON.object [
+  toJSON (SchemaCache tabs rels routs reps hdlers tzs _ _ _ _) = JSON.object [
       "dbTables"          .= JSON.toJSON tabs
     , "dbRelationships"   .= JSON.toJSON rels
     , "dbRoutines"        .= JSON.toJSON routs
@@ -103,7 +133,7 @@ instance JSON.ToJSON SchemaCache where
     ]
 
 showSummary :: SchemaCache -> Text
-showSummary (SchemaCache tbls rels routs reps mediaHdlrs tzs _ _) =
+showSummary (SchemaCache tbls rels routs reps mediaHdlrs tzs _ _ _ _) =
   T.intercalate ", "
   [ show (HM.size tbls)       <> " Relations"
   , show (HM.size rels)       <> " Relationships"
@@ -157,11 +187,18 @@ maxDbTablesForFuzzySearch = 500
 querySchemaCache :: AppConfig -> SQL.Transaction SchemaCache
 querySchemaCache conf@AppConfig{..} = do
   SQL.sql "set local schema ''" -- This voids the search path. The following queries need this for getting the fully qualified name(schema.name) of every db object
-  tabs    <- sqlTimedStmt gucTbls  conf   allTables
+  tabs    <- sqlTimedStmt gucTbls  conf   (allTables configOpenApiMetadata)
   keyDeps <- sqlTimedStmt gucKDeps conf   allViewsKeyDependencies
   m2oRels <- sqlTimedStmt gucRels  mempty allM2OandO2ORels
-  funcs   <- sqlTimedStmt gucFuncs conf   allFunctions
+  funcs   <- sqlTimedStmt gucFuncs conf   (allFunctions configOpenApiMetadata)
   cRels   <- sqlTimedStmt gucCRels mempty allComputedRels
+  -- Untimed (debug timings machinery untouched): only used by the opt-in
+  -- typegen OpenAPI metadata extension. Gated on the flag so the resident
+  -- schema cache stays byte-for-byte baseline when the feature is off
+  -- (the extra fields/queries otherwise grow the cache ~1.7M and trip the
+  -- 50M-body memory ceiling even though the feature is unused).
+  comps   <- if configOpenApiMetadata then SQL.statement conf allCompositeTypes else pure []
+  cfields <- if configOpenApiMetadata then SQL.statement conf allComputedFields else pure []
   reps    <- sqlTimedStmt gucDReps conf   dataRepresentations
   mHdlers <- sqlTimedStmt gucMHdrs conf   mediaHandlers
   tzones  <- if configDbTimezoneEnabled
@@ -192,6 +229,8 @@ querySchemaCache conf@AppConfig{..} = do
         -- Fuzzy.FuzzySet is memory heavy we just don't use it for large schemas
         Fuzzy.fromList <$> HM.filter ((< maxDbTablesForFuzzySearch) . length) (HM.fromListWith (<>) ((qiSchema &&& pure . qiName) <$> HM.keys tabsWViewsPks))
     , dbQueryTimings = qsTime
+    , dbCompositeTypes = comps
+    , dbComputedFields = cfields
     }
   where
     schemas = toList configDbSchemas
@@ -231,6 +270,8 @@ removeInternal schemas dbStruct =
     , dbTimezones       = dbTimezones dbStruct
     , dbTablesFuzzyIndex = dbTablesFuzzyIndex dbStruct
     , dbQueryTimings      = dbQueryTimings dbStruct
+    , dbCompositeTypes    = dbCompositeTypes dbStruct
+    , dbComputedFields    = dbComputedFields dbStruct
     }
   where
     hasInternalJunction ComputedRelationship{} = False
@@ -238,8 +279,14 @@ removeInternal schemas dbStruct =
       M2M Junction{junTable} -> qiSchema junTable `notElem` schemas
       _                      -> False
 
-decodeTables :: HD.Result TablesMap
-decodeTables =
+-- | Decode the tables/columns. When @metaOn@ is False (the opt-in typegen
+-- OpenAPI metadata feature is disabled) the three extra column fields and the
+-- table kind are read off the wire but discarded into shared-empty values, so
+-- the resident schema cache is byte-for-byte identical to the pre-feature
+-- baseline (keeps the 50M-body memory ceiling intact). The columns are still
+-- selected by 'tablesSqlQuery'; only retention differs.
+decodeTables :: Bool -> HD.Result TablesMap
+decodeTables metaOn =
  HM.fromList . map (\tbl@Table{tableSchema, tableName} -> (QualifiedIdentifier tableSchema tableName, tbl)) <$> HD.rowList tblRow
  where
   tblRow = Table
@@ -260,7 +307,11 @@ decodeTables =
         <*> compositeField HD.text
         <*> nullableCompositeField HD.int4
         <*> nullableCompositeField HD.text
-        <*> compositeFieldArray HD.text))
+        <*> compositeFieldArray HD.text
+        <*> (if metaOn then nullableCompositeField HD.text else pure Nothing)
+        <*> (if metaOn then compositeField HD.bool else pure False)
+        <*> (if metaOn then compositeField HD.text else pure "")))
+    <*> (if metaOn then column HD.text else pure "")
 
 
 parseCols :: HD.Row [Column] -> HD.Row ColumnMap
@@ -300,8 +351,12 @@ viewKeyDepFromRow (s1,t1,s2,v2,cons,consType,sCols) = ViewKeyDependency (Qualifi
            | consType == "f" = FKDep
            | otherwise       = FKDepRef -- f_ref, we build this type in the query
 
-decodeFuncs :: HD.Result RoutineMap
-decodeFuncs =
+-- | Decode the routines. When @metaOn@ is False the two extra fields (rows
+-- estimate and TABLE/OUT return columns) used only by the opt-in typegen
+-- OpenAPI metadata feature are read off the wire but discarded, keeping the
+-- resident schema cache byte-for-byte identical to the pre-feature baseline.
+decodeFuncs :: Bool -> HD.Result RoutineMap
+decodeFuncs metaOn =
   -- Duplicate rows for a function means they're overloaded, order these by least args according to Routine Ord instance
   map sort . HM.fromListWith (++) . map ((\(x,y) -> (x, [y])) . addKey) <$> HD.rowList funcRow
   where
@@ -326,6 +381,8 @@ decodeFuncs =
               <*> column HD.bool
               <*> nullableColumn (toIsolationLevel <$> HD.text)
               <*> compositeArrayColumn ((,) <$> compositeField HD.text <*> compositeField HD.text) -- function setting
+              <*> (if metaOn then nullableColumn HD.float8 else pure Nothing)
+              <*> (if metaOn then compositeArrayColumn ((,) <$> compositeField HD.text <*> compositeField HD.text) else pure []) -- return columns
 
     addKey :: Routine -> (QualifiedIdentifier, Routine)
     addKey pd = (QualifiedIdentifier (pdSchema pd) (pdName pd), pd)
@@ -381,12 +438,96 @@ dataRepresentations = SQL.Statement sql mempty decodeRepresentations True
        OR (dst_t.typtype = 'd' AND c.castsource IN ('json'::regtype::oid , 'text'::regtype::oid)))
     |]
 
-allFunctions :: SQL.Statement AppConfig RoutineMap
-allFunctions = SQL.Statement funcsSqlQuery params decodeFuncs True
+allFunctions :: Bool -> SQL.Statement AppConfig RoutineMap
+allFunctions metaOn = SQL.Statement (funcsSqlQuery metaOn) params (decodeFuncs metaOn) True
   where
     params =
       (map escapeIdent . toList . configDbSchemas >$< arrayParam HE.text) <>
       (configDbHoistedTxSettings >$< arrayParam HE.text)
+
+-- | Standalone composite types (typtype = 'c') with their attributes. Only used
+-- by the opt-in typegen OpenAPI metadata extension.
+allCompositeTypes :: SQL.Statement AppConfig [CompositeType]
+allCompositeTypes = SQL.Statement sql params decodeCompositeTypes True
+  where
+    params = map escapeIdent . toList . configDbSchemas >$< arrayParam HE.text
+    sql = encodeUtf8 [trimming|
+      SELECT
+        n.nspname::text  AS schema,
+        t.typname::text  AS name,
+        COALESCE(
+          array_agg(row(a.attname, att.typname) ORDER BY a.attnum)
+            FILTER (WHERE a.attname IS NOT NULL AND NOT a.attisdropped),
+          '{}'
+        ) AS attributes
+      FROM pg_type t
+        JOIN pg_namespace n ON n.oid = t.typnamespace
+        JOIN pg_class c ON c.oid = t.typrelid
+        LEFT JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum > 0
+        LEFT JOIN pg_type att ON att.oid = a.atttypid
+      WHERE c.relkind = 'c'
+        AND t.typnamespace = ANY($$1::regnamespace[])
+      GROUP BY n.nspname, t.typname
+      ORDER BY n.nspname, t.typname|]
+
+decodeCompositeTypes :: HD.Result [CompositeType]
+decodeCompositeTypes = HD.rowList $
+  CompositeType
+    <$> column HD.text
+    <*> column HD.text
+    <*> compositeArrayColumn ((,) <$> compositeField HD.text <*> compositeField HD.text)
+
+-- | Computed fields/relationships: single relation-row-arg functions, returning
+-- any type (scalar/array/composite/relation). These are not captured by the
+-- routine cache (when the arg is unnamed) and carry the proretset/prorows/return
+-- relation detail the relationship cache lacks; only used by the typegen
+-- OpenAPI metadata extension.
+allComputedFields :: SQL.Statement AppConfig [ComputedField]
+allComputedFields = SQL.Statement sql params decodeComputedFields True
+  where
+    params = map escapeIdent . toList . configDbSchemas >$< arrayParam HE.text
+    sql = encodeUtf8 [trimming|
+      WITH all_relations AS (
+        SELECT reltype FROM pg_class WHERE relkind IN ('v','r','m','f','p')
+      )
+      SELECT
+        pn.nspname::text         AS schema,
+        arg_t.typname::text      AS table_name,
+        p.proname::text          AS name,
+        ret_t.typname::text      AS return_type,
+        p.proretset              AS is_setof,
+        p.provolatile            AS volatility,
+        p.prorows::float8        AS rows,
+        ret_schema.nspname::text AS return_schema,
+        ret_t.typrelid <> 0      AS return_is_relation
+      FROM pg_proc p
+        JOIN pg_namespace pn ON pn.oid = p.pronamespace
+        JOIN pg_type arg_t ON arg_t.oid = p.proargtypes[0]
+        JOIN pg_type ret_t ON ret_t.oid = p.prorettype
+        JOIN pg_namespace ret_schema ON ret_schema.oid = ret_t.typnamespace
+      WHERE p.pronargs = 1
+        AND p.prokind = 'f'
+        AND p.proargtypes[0] IN (SELECT reltype FROM all_relations)
+        AND p.pronamespace = ANY($$1::regnamespace[])
+      ORDER BY pn.nspname, arg_t.typname, p.proname|]
+
+decodeComputedFields :: HD.Result [ComputedField]
+decodeComputedFields = HD.rowList $
+  ComputedField
+    <$> column HD.text
+    <*> column HD.text
+    <*> column HD.text
+    <*> column HD.text
+    <*> column HD.bool
+    <*> (parseVol <$> column HD.char)
+    <*> nullableColumn HD.float8
+    <*> column HD.text
+    <*> column HD.bool
+  where
+    parseVol :: Char -> FuncVolatility
+    parseVol v | v == 'i'  = Immutable
+               | v == 's'  = Stable
+               | otherwise = Volatile
 
 baseTypesCte :: Text
 baseTypesCte = [trimming|
@@ -418,8 +559,8 @@ baseTypesCte = [trimming|
   )
 |]
 
-funcsSqlQuery :: SqlQuery
-funcsSqlQuery = encodeUtf8 [trimming|
+funcsSqlQuery :: Bool -> SqlQuery
+funcsSqlQuery metaOn = encodeUtf8 [trimming|
   WITH
   $baseTypesCte,
   arguments AS (
@@ -448,7 +589,7 @@ funcsSqlQuery = encodeUtf8 [trimming|
            WITH ORDINALITY AS _ (name, type, mode, idx)
     WHERE type IS NOT NULL -- only input arguments
     GROUP BY oid
-  )
+  )$returnColumnsCte
   SELECT
     pn.nspname AS proc_schema,
     p.proname AS proc_name,
@@ -465,9 +606,9 @@ funcsSqlQuery = encodeUtf8 [trimming|
     p.provolatile,
     p.provariadic > 0 as hasvariadic,
     lower((regexp_split_to_array((regexp_split_to_array(iso_config, '='))[2], ','))[1]) AS transaction_isolation_level,
-    coalesce(func_settings.kvs, '{}') as kvs
+    coalesce(func_settings.kvs, '{}') as kvs$rowsReturnCols
   FROM pg_proc p
-  LEFT JOIN arguments a ON a.oid = p.oid
+  LEFT JOIN arguments a ON a.oid = p.oid$returnColumnsJoin
   JOIN pg_namespace pn ON pn.oid = p.pronamespace
   JOIN base_types bt ON bt.oid = p.prorettype
   JOIN pg_type t ON t.oid = bt.base_type
@@ -487,6 +628,18 @@ funcsSqlQuery = encodeUtf8 [trimming|
   WHERE t.oid <> 'trigger'::regtype AND COALESCE(a.callable, true)
   AND prokind = 'f'
   AND p.pronamespace = ANY($$1::regnamespace[]) |]
+  where
+    -- When the typegen metadata feature is off, the OUT/TABLE return-columns CTE
+    -- (which walks every pg_proc, including all pg_catalog builtins) and the
+    -- rows/return_columns output columns are omitted entirely, so the
+    -- schema-cache load allocates at the pre-feature baseline (the decoder
+    -- mirrors this by only reading these fields when the feature is on).
+    returnColumnsCte, rowsReturnCols, returnColumnsJoin :: Text
+    returnColumnsCte = if metaOn
+      then ",\n  return_columns AS (\n    SELECT\n      pp.oid,\n      array_agg((COALESCE(u.name, ''), rt.typname::text) ORDER BY u.idx)\n        FILTER (WHERE u.mode = 't') AS cols\n    FROM pg_proc pp\n    CROSS JOIN LATERAL unnest(pp.proallargtypes, pp.proargmodes, pp.proargnames)\n      WITH ORDINALITY AS u (typ_oid, mode, name, idx)\n    JOIN pg_type rt ON rt.oid = u.typ_oid\n    GROUP BY pp.oid\n  )"
+      else ""
+    rowsReturnCols = if metaOn then ",\n    p.prorows::float8 as rows,\n    coalesce(rc.cols, '{}') as return_columns" else ""
+    returnColumnsJoin = if metaOn then "\n  LEFT JOIN return_columns rc ON rc.oid = p.oid" else ""
 {-
 Adds M2O and O2O relationships for views to tables, tables to views, and views to views. The example below is taken from the test fixtures, but the views names/colnames were modified.
 
@@ -594,14 +747,14 @@ addViewPrimaryKeys tabs keyDeps =
     takeFirstPK = mapMaybe (head . snd)
     indexedDeps = HM.fromListWith (++) $ fmap ((keyDepType &&& keyDepView) &&& pure) keyDeps
 
-allTables :: SQL.Statement AppConfig TablesMap
-allTables = SQL.Statement tablesSqlQuery params decodeTables True
+allTables :: Bool -> SQL.Statement AppConfig TablesMap
+allTables metaOn = SQL.Statement (tablesSqlQuery metaOn) params (decodeTables metaOn) True
   where
     params = map escapeIdent . toList . configDbSchemas >$< arrayParam HE.text
 
 -- | Gets tables with their PK cols
-tablesSqlQuery :: SqlQuery
-tablesSqlQuery =
+tablesSqlQuery :: Bool -> SqlQuery
+tablesSqlQuery metaOn =
   -- the tbl_constraints/key_col_usage CTEs are based on the standard "information_schema.table_constraints"/"information_schema.key_column_usage" views,
   -- we cannot use those directly as they include the following privilege filter:
   -- (pg_has_role(ss.relowner, 'USAGE'::text) OR has_column_privilege(ss.roid, a.attnum, 'SELECT, INSERT, UPDATE, REFERENCES'::text));
@@ -641,7 +794,7 @@ tablesSqlQuery =
               information_schema._pg_truetypmod(a.*, t.*)
           )::integer AS character_maximum_length,
           bt.base_type,
-          a.attnum::integer AS position
+          a.attnum::integer AS position$extraColumnCols
       FROM pg_attribute a
           LEFT JOIN pg_description AS d
               ON d.objoid = a.attrelid and d.objsubid = a.attnum and d.classoid = 'pg_class'::regclass
@@ -653,6 +806,7 @@ tablesSqlQuery =
               ON a.atttypid = t.oid
           LEFT JOIN base_types bt
               ON t.oid = bt.oid
+          $basePtJoin
           LEFT JOIN pg_depend seq
               ON seq.refobjid = a.attrelid and seq.refobjsubid = a.attnum and seq.deptype = 'i'
       WHERE
@@ -676,7 +830,7 @@ tablesSqlQuery =
         coalesce(
           (SELECT array_agg(enumlabel ORDER BY enumsortorder) FROM pg_enum WHERE enumtypid = base_type),
           '{}'
-        )
+        )$extraRowFields
       ) order by position) as columns
     FROM columns
     GROUP BY relid
@@ -730,7 +884,7 @@ tablesSqlQuery =
       )
     ) AS deletable,
     coalesce(tpks.pk_cols, '{}') as pk_cols,
-    coalesce(cols_agg.columns, '{}') as columns
+    coalesce(cols_agg.columns, '{}') as columns$tableKindCol
   FROM pg_class c
   JOIN pg_namespace n ON n.oid = c.relnamespace
   LEFT JOIN pg_description d on d.objoid = c.oid and d.objsubid = 0 and d.classoid = 'pg_class'::regclass
@@ -740,6 +894,19 @@ tablesSqlQuery =
   AND c.relnamespace NOT IN ('pg_catalog'::regnamespace, 'information_schema'::regnamespace)
   AND not c.relispartition
   ORDER BY table_schema, table_name|]
+  where
+    -- When the typegen metadata feature is off, the extra per-column fields, the
+    -- object kind and the base-type join are omitted entirely (not just blanked):
+    -- the columns are not selected, decoded or aggregated, so the schema-cache
+    -- load allocates exactly at the pre-feature baseline (the decoder mirrors
+    -- this by only reading these fields when the feature is on).
+    extraColumnCols, extraRowFields, basePtJoin, tableKindCol :: Text
+    extraColumnCols = if metaOn
+      then ",\n          CASE a.attidentity WHEN 'a' THEN 'ALWAYS' WHEN 'd' THEN 'BY DEFAULT' ELSE NULL END AS identity_generation,\n          a.attgenerated = 's' AS is_generated,\n          COALESCE(base_pt.typname, t.typname)::text AS format"
+      else ""
+    extraRowFields = if metaOn then ",\n        identity_generation,\n        is_generated,\n        format" else ""
+    basePtJoin     = if metaOn then "LEFT JOIN pg_type base_pt ON base_pt.oid = bt.base_type" else ""
+    tableKindCol   = if metaOn then ",\n    CASE c.relkind WHEN 'v' THEN 'view' WHEN 'm' THEN 'materialized_view' WHEN 'f' THEN 'foreign_table' ELSE 'table' END as table_kind" else ""
 
 -- | Gets many-to-one relationships and one-to-one(O2O) relationships, which are a refinement of the many-to-one's
 allM2OandO2ORels :: SQL.Statement () [Relationship]
