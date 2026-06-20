@@ -185,7 +185,7 @@ actionResult MainQuery{mqOpenAPI=(tblsQ, funcsQ, schQ)} (MayUseDb plan@InspectPl
       case configOpenApiMode of
         OAFollowPriv -> do
           tableAccess <- SQL.statement mempty $ SQL.dynamicallyParameterized tblsQ  decodeAccessibleIdentifiers configDbPreparedStatements
-          accFuncs <-  SQL.statement mempty $ SQL.dynamicallyParameterized   funcsQ   SchemaCache.decodeFuncs configDbPreparedStatements
+          accFuncs <-  SQL.statement mempty $ SQL.dynamicallyParameterized   funcsQ   (SchemaCache.decodeFuncs configOpenApiMetadata) configDbPreparedStatements
           schDesc <- SQL.statement mempty $ SQL.dynamicallyParameterized     schQ decodeSchemaDesc configDbPreparedStatements
           let tbls = HM.filterWithKey (\qi _ -> S.member qi tableAccess) $ SchemaCache.dbTables sCache
 

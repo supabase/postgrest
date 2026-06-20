@@ -52,29 +52,38 @@ data FuncVolatility
 type FuncSettings = [(Text,Text)]
 
 data Routine = Function
-  { pdSchema       :: Schema
-  , pdName         :: Text
-  , pdDescription  :: Maybe Text
-  , pdParams       :: [RoutineParam]
-  , pdReturnType   :: RetType
-  , pdVolatility   :: FuncVolatility
-  , pdHasVariadic  :: Bool
-  , pdIsoLvl       :: Maybe SQL.IsolationLevel
-  , pdFuncSettings :: FuncSettings
+  { pdSchema        :: Schema
+  , pdName          :: Text
+  , pdDescription   :: Maybe Text
+  , pdParams        :: [RoutineParam]
+  , pdReturnType    :: RetType
+  , pdVolatility    :: FuncVolatility
+  , pdHasVariadic   :: Bool
+  , pdIsoLvl        :: Maybe SQL.IsolationLevel
+  , pdFuncSettings  :: FuncSettings
+    -- `prorows` estimate (set-returning functions); surfaced for the typegen
+    -- OpenAPI metadata extension so generated RPC return types know cardinality.
+  , pdRows          :: Maybe Double
+    -- OUT/TABLE return columns (name, pg_catalog short type) for RETURNS TABLE /
+    -- OUT-param functions; surfaced for the typegen OpenAPI metadata extension so
+    -- the generated return type lists the columns instead of falling back to record.
+  , pdReturnColumns :: [(Text, Text)]
   }
   deriving (Eq, Show, Generic)
 -- need to define JSON manually bc SQL.IsolationLevel doesn't have a JSON instance(and we can't define one for that type without getting a compiler error)
 instance JSON.ToJSON Routine where
-  toJSON (Function sch nam desc params ret vol hasVar _ sets) = JSON.object
+  toJSON (Function sch nam desc params ret vol hasVar _ sets rows retCols) = JSON.object
     [
-      "pdSchema"       .= sch
-    , "pdName"         .= nam
-    , "pdDescription"  .= desc
-    , "pdParams"       .= JSON.toJSON params
-    , "pdReturnType"   .= JSON.toJSON ret
-    , "pdVolatility"   .= JSON.toJSON vol
-    , "pdHasVariadic"  .= JSON.toJSON hasVar
-    , "pdFuncSettings" .= JSON.toJSON sets
+      "pdSchema"        .= sch
+    , "pdName"          .= nam
+    , "pdDescription"   .= desc
+    , "pdParams"        .= JSON.toJSON params
+    , "pdReturnType"    .= JSON.toJSON ret
+    , "pdVolatility"    .= JSON.toJSON vol
+    , "pdHasVariadic"   .= JSON.toJSON hasVar
+    , "pdFuncSettings"  .= JSON.toJSON sets
+    , "pdRows"          .= JSON.toJSON rows
+    , "pdReturnColumns" .= JSON.toJSON retCols
     ]
 
 data RoutineParam = RoutineParam
@@ -88,10 +97,10 @@ data RoutineParam = RoutineParam
 
 -- Order by least number of params in the case of overloaded functions
 instance Ord Routine where
-  Function schema1 name1 des1 prms1 rt1 vol1 hasVar1 iso1 sets1 `compare` Function schema2 name2 des2 prms2 rt2 vol2 hasVar2 iso2 sets2
+  Function schema1 name1 des1 prms1 rt1 vol1 hasVar1 iso1 sets1 rows1 retCols1 `compare` Function schema2 name2 des2 prms2 rt2 vol2 hasVar2 iso2 sets2 rows2 retCols2
     | schema1 == schema2 && name1 == name2 && length prms1 < length prms2  = LT
     | schema1 == schema2 && name1 == name2 && length prms1 > length prms2  = GT
-    | otherwise = (schema1, name1, des1, prms1, rt1, vol1, hasVar1, iso1, sets1) `compare` (schema2, name2, des2, prms2, rt2, vol2, hasVar2, iso2, sets2)
+    | otherwise = (schema1, name1, des1, prms1, rt1, vol1, hasVar1, iso1, sets1, rows1, retCols1) `compare` (schema2, name2, des2, prms2, rt2, vol2, hasVar2, iso2, sets2, rows2, retCols2)
 
 -- | A map of all procs, all of which can be overloaded(one entry will have more than one Routine).
 -- | It uses a HashMap for a faster lookup.

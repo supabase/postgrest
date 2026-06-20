@@ -765,6 +765,21 @@ log-query
 
   Logs the SQL query for the corresponding request at the current :ref:`log-level`. See :ref:`sql_query_logs`.
 
+.. _openapi-metadata:
+
+openapi-metadata
+----------------
+
+  =============== =================================
+  **Type**        Boolean
+  **Default**     False
+  **Reloadable**  Y
+  **Environment** PGRST_OPENAPI_METADATA
+  **In-Database** pgrst.openapi_metadata
+  =============== =================================
+
+  When enabled, adds a top-level ``x-postgrest-typegen-metadata`` vendor extension to the :ref:`OpenAPI output <open-api>` carrying catalog-grade metadata (object kind, identity/generated columns, full relationships with cardinality, function return types, composite types and computed fields) for faithful client type generation. Disabled by default; standard OpenAPI consumers ignore the extra ``x-`` key.
+
 .. _openapi-mode:
 
 openapi-mode
