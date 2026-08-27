@@ -42,9 +42,9 @@ import PostgREST.Error      (Error (..),
 
 import Data.Aeson       ((.:?))
 import Data.Aeson.Types (parseMaybe)
+import Debug.Trace      as BUG
 import Jose.Jwk         (JwkSet)
 import Protolude        hiding (first)
-
 parseAndDecodeClaims :: (MonadError Error m, MonadIO m) => JwkSet -> ByteString -> m JSON.Object
 parseAndDecodeClaims jwkSet token = parseToken jwkSet token >>= decodeClaims
 
@@ -64,7 +64,7 @@ checkForErrors time audMatches = mconcat
   [
     claim "exp" ExpClaimNotNumber $ inThePast JWTExpired
   , claim "nbf" NbfClaimNotNumber $ inTheFuture JWTNotYetValid
-  , claim "iat" IatClaimNotNumber $ inTheFuture JWTIssuedAtFuture
+  , claim "iat" IatClaimNotNumber $ inTheFuture' JWTIssuedAtFuture
   , claim "aud" AudClaimNotStringOrArray $ checkValue (not . validAud) JWTNotInAudience
   ]
   where
@@ -72,6 +72,13 @@ checkForErrors time audMatches = mconcat
       sciToInt = fromMaybe 0 . Sci.toBoundedInteger
       toSec = floor . nominalDiffTimeToSeconds . utcTimeToPOSIXSeconds
       now = toSec time
+
+      inTheFuture' =
+        let now' = now + allowedSkewSeconds in
+        checkTime' now' (now' <)
+
+      checkTime' currtime cond = checkValue' currtime (cond . sciToInt)
+      checkValue' currtime invalid msg val = if invalid val then pure (BUG.traceShow ("curr: " ++ show currtime,"iat: " ++ show (sciToInt val)) msg) else mempty
 
       inTheFuture = checkTime ((now + allowedSkewSeconds) <)
       inThePast = checkTime ((now - allowedSkewSeconds) >)
