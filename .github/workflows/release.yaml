@@ -81,8 +81,8 @@ jobs:
           tar cJvf "release-bundle/postgrest-${GITHUB_REF_NAME}-macos-aarch64.tar.xz" \
             -C artifacts/postgrest-macos-aarch64 postgrest
 
-          tar cJvf "release-bundle/postgrest-${GITHUB_REF_NAME}-freebsd-x86-64.tar.xz" \
-            -C artifacts/postgrest-freebsd-x86-64 postgrest
+          # tar cJvf "release-bundle/postgrest-${GITHUB_REF_NAME}-freebsd-x86-64.tar.xz" \
+          #   -C artifacts/postgrest-freebsd-x86-64 postgrest
 
           tar cJvf "release-bundle/postgrest-${GITHUB_REF_NAME}-ubuntu-aarch64.tar.xz" \
             -C artifacts/postgrest-ubuntu-aarch64 postgrest
@@ -131,7 +131,7 @@ jobs:
     needs:
       - prepare
     if: |
-      vars.DOCKER_REPO && vars.DOCKER_USER
+      vars.DOCKER_REPO
     env:
       DOCKER_REPO: ${{ vars.DOCKER_REPO }}
     steps:
@@ -147,8 +147,8 @@ jobs:
       - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
       - uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
         with:
-          username: ${{ vars.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASS }}
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PAT }}
       - name: Build aarch64 Docker image
         run: |
           # This only pushes the image via digest, not a tag. This will not appear
@@ -184,19 +184,18 @@ jobs:
           fi
 
 
-  docker-description:
-    name: Docker Hub Description
-    runs-on: ubuntu-24.04
-    if: |
-      vars.DOCKER_REPO && vars.DOCKER_USER &&
-      github.ref == 'refs/tags/devel'
-    steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - uses: peter-evans/dockerhub-description@1b9a80c056b620d92cedb9d9b5a223409c68ddfa # v5.0.0
-        with:
-          username: ${{ vars.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASS }}
-          repository: ${{ vars.DOCKER_REPO }}/postgrest
-          short-description: ${{ github.event.repository.description }}
-          readme-filepath: ./docker-hub-readme.md
-
+  #.docker-description:
+  #.  name: Docker Hub Description
+  #.  runs-on: ubuntu-24.04
+  #.  if: |
+  #.    vars.DOCKER_REPO && secrets.DOCKER_USER &&
+   #.    github.ref == 'refs/tags/devel'
+   #.  steps:
+   #.    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+   #.    - uses: peter-evans/dockerhub-description@1b9a80c056b620d92cedb9d9b5a223409c68ddfa # v5.0.0
+   #.      with:
+   #.        username: ${{ secrets.DOCKER_USER }}
+   #.        password: ${{ secrets.DOCKER_PAT }}
+   #.        repository: ${{ vars.DOCKER_REPO }}/postgrest
+   #.        short-description: ${{ github.event.repository.description }}
+   #.        readme-filepath: ./docker-hub-readme.md
