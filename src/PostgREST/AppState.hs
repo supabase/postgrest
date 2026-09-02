@@ -47,15 +47,12 @@ import           PostgREST.Observation
 import           PostgREST.TimeIt           (timeItT)
 import           PostgREST.Version          (prettyVersion)
 
-import Control.AutoUpdate (defaultUpdateSettings, mkAutoUpdate,
-                           updateAction)
 import Control.Debounce
-import Control.Retry      (RetryPolicy, RetryStatus (..), capDelay,
-                           exponentialBackoff, retrying,
-                           rsPreviousDelay)
-import Data.IORef         (IORef, atomicWriteIORef, newIORef,
-                           readIORef)
-import Data.Time.Clock    (UTCTime, getCurrentTime)
+import Control.Retry    (RetryPolicy, RetryStatus (..), capDelay,
+                         exponentialBackoff, retrying,
+                         rsPreviousDelay)
+import Data.IORef       (IORef, atomicWriteIORef, newIORef, readIORef)
+import Data.Time.Clock  (UTCTime, getCurrentTime)
 
 import PostgREST.Auth.JwtCache           (JwtCacheState, update)
 import PostgREST.Config                  (AppConfig (..),
@@ -142,7 +139,7 @@ initWithPool (sock, adminSock) pool conf loggerState metricsState observer = do
     <*> newIORef False
     <*> pure (pure ())
     <*> newIORef conf
-    <*> mkAutoUpdate defaultUpdateSettings { updateAction = getCurrentTime }
+    <*> pure getCurrentTime
     <*> myThreadId
     <*> newIORef 0
     <*> newIORef 1
