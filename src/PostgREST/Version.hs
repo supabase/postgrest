@@ -11,11 +11,11 @@ import Protolude
 version :: [Text]
 version = T.splitOn "." VERSION_postgrest
 
--- | User friendly version number such as '14.0'.
--- Pre-release versions are tagged as such, e.g., '15 (pre-release)'.
+-- | User friendly version number such as '1.1.1'.
+-- Pre-release versions are tagged as such, e.g., '1.1 (pre-release)'.
 prettyVersion :: ByteString
 prettyVersion =
-  (encodeUtf8 . T.intercalate "." $ take 2 version) <> preRelease
+  VERSION_postgrest <> preRelease
   where
     preRelease = if isPreRelease then " (pre-release)" else mempty
 
@@ -29,7 +29,7 @@ docsVersion
   | otherwise    =  "v" <> T.intercalate "." (take 1 version)
 
 
--- | Versions with one components (e.g., '15') are treated as pre-releases.
+-- | Versions with two components (e.g., '1.1') are treated as pre-releases.
 isPreRelease :: Bool
 isPreRelease =
-  length version == 1
+  length version == 2

@@ -20,24 +20,27 @@ let
         git diff --exit-code HEAD postgrest.cabal > /dev/null
         trap "" ERR
 
-        # TODO: Support C+D bumps when implementing hackage releases
         bump () {
           current_version="$(grep -oP '^version:\s*\K.*' postgrest.cabal)"
           # shellcheck disable=SC2034
-          IFS=. read -r A B C D <<< "$current_version"
+          IFS=. read -r major minor patch <<< "$current_version"
           echo "Current version is $current_version"
 
           case "$1" in
-            A)
-              new_version="$((A+1)).0"
-              new_docs_version="$((A+1))"
+            major)
+              new_version="$((major+1)).0.0"
+              new_docs_version="$((major+1)).0"
               ;;
-            B)
-              new_version="$A.$((B+1))"
-              new_docs_version="$A"
+            minor)
+              new_version="$major.$((minor+1)).0"
+              new_docs_version="$major.$((minor+1))"
+              ;;
+            patch)
+              new_version="$major.$minor.$((patch+1))"
+              new_docs_version="$major.$minor"
               ;;
             devel)
-              new_version="$((A+1))"
+              new_version="$major.$((minor+1))"
               new_docs_version="devel"
               ;;
           esac
@@ -52,9 +55,13 @@ let
 
         today_date_for_changelog="$(date '+%Y-%m-%d')"
         if [[ "$current_branch" == "main" ]]; then
-          bump A
+          if [[ "$_arg_major" == "on" ]]; then
+            bump major
+          else
+            bump minor
+          fi
         else
-          bump B
+          bump patch
         fi
 
         echo "Updating CHANGELOG.md ..."
@@ -68,10 +75,10 @@ let
           bump devel
 
           # The order of operations is important here:
-          # - bump devel is run and $A is upated to the new version
-          # - the branch is created with the new A, but the commit before the devel bump
+          # - bump devel is run and $major is upated to the new version
+          # - the branch is created with the new major, but the commit before the devel bump
           # - the devel bump is committed
-          git branch "v$A"
+          git branch -f "v$major"
 
           echo "Committing (devel bump)..."
           git commit -m "bump version to $new_version" > /dev/null
@@ -83,7 +90,7 @@ let
 
         if [[ "$current_branch" == "main" ]]; then
           push1="git push $remote $current_branch"
-          push2="git push $remote v$A"
+          push2="git push $remote v$major --force"
         else
           push1="git push $remote $current_branch"
           push2=""
