@@ -6,11 +6,6 @@ All notable changes to this project will be documented in this file. From versio
 
 ### Changes
 
-- Add schema cache query logging on `log-query=true` and `log-level=info|debug` by @steve-chavez in #5285
-- Remove deprecated JSPath DSL syntax for `jwt-role-claim-key` config by @taimoorzaeem in #5192
-- Add the `Server-Timing` header to error responses by @mkleczek in #5294
-- Log GHC RTS flags at startup on `log-level=debug` by @steve-chavez in #5222
-- Fix idle pool connections not being released after `db-pool-max-idletime` by @mkleczek in #3902
 - Reuse the most recently used pool connection so surplus ones are released after `db-pool-max-idletime` by @mkleczek in #5337
 - Raise the soft limit on open file descriptors to the hard limit on startup by @mkleczek
 - Add `pgrst_schema_cache_last_reload_successful` metric to `/metrics` endpoint by @taimoorzaeem in #4971
@@ -22,6 +17,17 @@ All notable changes to this project will be documented in this file. From versio
 - JWT verification now uses the `botan` C++ library by @steve-chavez in #5403
   + If you build from source you'll need to ensure `botan` is present as a dependency.
   + Static builds work as usual, they include the `botan` library.
+
+
+## [17.0] - 2026-10-20
+
+### Changes
+
+- Add schema cache query logging on `log-query=true` and `log-level=info|debug` by @steve-chavez in #5285
+- Remove deprecated JSPath DSL syntax for `jwt-role-claim-key` config by @taimoorzaeem in #5192
+- Add the `Server-Timing` header to error responses by @mkleczek in #5294
+- Log GHC RTS flags at startup on `log-level=debug` by @steve-chavez in #5222
+- Fix idle pool connections not being released after `db-pool-max-idletime` by @mkleczek in #3902
 
 ## [16.5] - 2026-10-18
 
