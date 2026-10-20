@@ -123,7 +123,7 @@ jobs:
     needs:
       - github
     if: |
-      vars.DOCKER_REPO && vars.DOCKER_USER
+      vars.DOCKER_REPO
     env:
       DOCKER_REPO: ${{ vars.DOCKER_REPO }}
     steps:
@@ -141,30 +141,30 @@ jobs:
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
-          username: ${{ vars.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASS }}
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PAT }}
       - name: Publish images on Docker Hub
         run: |
           docker load -i postgrest-docker-aarch64.tar.gz
-          docker tag postgrest:latest "$DOCKER_REPO/postgrest:${GITHUB_REF_NAME}-linux-arm64"
-          docker push "$DOCKER_REPO/postgrest:${GITHUB_REF_NAME}-linux-arm64"
+          docker tag postgrest-middleware:latest "$DOCKER_REPO/postgrest-middleware:${GITHUB_REF_NAME}-linux-arm64"
+          docker push "$DOCKER_REPO/postgrest-middleware:${GITHUB_REF_NAME}-linux-arm64"
 
           docker load -i postgrest-docker-x86-64.tar.gz
-          docker tag postgrest:latest "$DOCKER_REPO/postgrest:${GITHUB_REF_NAME}-linux-amd64"
-          docker push "$DOCKER_REPO/postgrest:${GITHUB_REF_NAME}-linux-amd64"
+          docker tag postgrest-middleware:latest "$DOCKER_REPO/postgrest-middleware:${GITHUB_REF_NAME}-linux-amd64"
+          docker push "$DOCKER_REPO/postgrest-middleware:${GITHUB_REF_NAME}-linux-amd64"
 
-          docker manifest create "$DOCKER_REPO/postgrest:${GITHUB_REF_NAME}" \
-            "$DOCKER_REPO/postgrest:${GITHUB_REF_NAME}-linux-arm64" \
-            "$DOCKER_REPO/postgrest:${GITHUB_REF_NAME}-linux-amd64"
-          docker manifest push "$DOCKER_REPO/postgrest:${GITHUB_REF_NAME}"
+          docker manifest create "$DOCKER_REPO/postgrest-middleware:${GITHUB_REF_NAME}" \
+            "$DOCKER_REPO/postgrest-middleware:${GITHUB_REF_NAME}-linux-arm64" \
+            "$DOCKER_REPO/postgrest-middleware:${GITHUB_REF_NAME}-linux-amd64"
+          docker manifest push "$DOCKER_REPO/postgrest-middleware:${GITHUB_REF_NAME}"
 
           # Only tag 'latest' for full releases
           if [ "${GITHUB_REF_NAME}" != "devel" ]; then
             echo "Pushing to 'latest' tag for full release of ${GITHUB_REF_NAME} ..."
-            docker manifest create "$DOCKER_REPO/postgrest:latest" \
-              "$DOCKER_REPO/postgrest:${GITHUB_REF_NAME}-linux-arm64" \
-              "$DOCKER_REPO/postgrest:${GITHUB_REF_NAME}-linux-amd64"
-            docker manifest push "$DOCKER_REPO/postgrest:latest"
+            docker manifest create "$DOCKER_REPO/postgrest-middleware:latest" \
+              "$DOCKER_REPO/postgrest-middleware:${GITHUB_REF_NAME}-linux-arm64" \
+              "$DOCKER_REPO/postgrest-middleware:${GITHUB_REF_NAME}-linux-amd64"
+            docker manifest push "$DOCKER_REPO/postgrest-middleware:latest"
           else
             echo "Skipping push to 'latest' tag for pre-release..."
           fi
@@ -208,11 +208,11 @@ jobs:
       - name: Publish images on Docker Hub
         run: |
           docker load -i postgrest-docker-aarch64.tar.gz
-          docker tag postgrest:latest "ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_REF_NAME}-linux-arm64"
+          docker tag postgrest-middleware:latest "ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_REF_NAME}-linux-arm64"
           docker push "ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_REF_NAME}-linux-arm64"
 
           docker load -i postgrest-docker-x86-64.tar.gz
-          docker tag postgrest:latest "ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_REF_NAME}-linux-amd64"
+          docker tag postgrest-middleware:latest "ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_REF_NAME}-linux-amd64"
           docker push "ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_REF_NAME}-linux-amd64"
 
           docker manifest create "ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_REF_NAME}" \
@@ -230,5 +230,3 @@ jobs:
           else
             echo "Skipping push to 'latest' tag for pre-release..."
           fi
-
-
