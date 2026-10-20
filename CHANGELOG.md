@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. From versio
 
 ## Unreleased
 
+## [17.0] - 2026-10-20
+
 ### Changes
 
 - Add schema cache query logging on `log-query=true` and `log-level=info|debug` by @steve-chavez in #5285
