@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. From versio
 - Add `pgrst_schema_cache_last_reload_successful` metric to `/metrics` endpoint by @taimoorzaeem in #4971
 - Fix no JSON response on Warp Internal Server Error by @taimoorzaeem in #5363
 - Improve JWT verification for the ES256 algorithm, ~x9 faster and reduces time by ~89% according to our benchmarks by @steve-chavez in #5403
+- Reimplement legacy JSPath DSL syntax for `jwt-role-claim-key` config by @taimoorzaeem, @laurenceisla in #5165
 
 ### Migration to v18
 
@@ -38,6 +39,7 @@ All notable changes to this project will be documented in this file. From versio
   + PostgREST returns `PGRST129` error when timezone value exceeds 24 characters in pg versions lower than `18.6`, `17.11`, `16.15`, `15.19` and `14.24`.
   + The validation is added to mitigate Postgres [CVE-2026-14669](https://www.postgresql.org/support/security/CVE-2026-14669/) for unpatched versions.
   + We recommend to upgrade to later PostgreSQL versions.
+- Reduce JWT cache memory usage by @mkleczek in #5229
 
 ## [16.4] - 2026-09-24
 
