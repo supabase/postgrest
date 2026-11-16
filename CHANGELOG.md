@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. From versio
 
 ## Unreleased
 
+## [17.1] - 2026-11-16
+
 ### Changes
 
 - Reuse the most recently used pool connection so surplus ones are released after `db-pool-max-idletime` by @mkleczek in #5337
